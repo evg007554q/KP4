@@ -3,65 +3,57 @@ from classes import HeadHunterAPI, SuperJobAPI, Connector
 
 
 def main():
-    vacancy_json = []
+    finish = False
+    while not finish:
+        # Первый уровень меню только ввод ключевого слова
+        vacancy_json = []
 
-    # keyword = input("Введите ключевое слово для поиска")
-    keyword = "Python"
+        keyword = input("Введите ключевое слово для поиска \n")
 
-    hh_api = HeadHunterAPI(keyword)
-    superjob_api = SuperJobAPI(keyword)
+        hh_api = HeadHunterAPI(keyword)
+        superjob_api = SuperJobAPI(keyword)
 
-    for api in (hh_api,superjob_api):
-        api.get_vacancies(pages_count=10)
-        vacancy_json.extend(api.det_formatted_vacancies())
+        # загрузка из hh_api
+        hh_api.get_vacancies(pages_count=10)
+        vacancy_json.extend(hh_api.det_formatted_vacancies())
 
-    connector = Connector(keyword=keyword, vacancy_json=vacancy_json)
+        # загрузка из superjob_api
+        superjob_api.get_vacancies(pages_count=10)
+        vacancy_json.extend(superjob_api.det_formatted_vacancies())
 
-    while True:
-        command = input(
-            "1 - Статистика \n"
-            "2 - 5 лучших вакансий \n"
-            "3 - Все вакансии вакансии по порядку \n"
-            "0 - Назад \n"
-        )
+        connector = Connector(keyword=keyword, vacancies_json=vacancy_json)
 
-        if command == '0':
-            break
-        elif command == '1':
-            vacancies = connector.select()
-        elif command == '3':
-            vacancies = connector.sort_by_salary_from()
+        while True:
+            # 2 уровень меню
+            # вывод вакансий, возврат назад, выход
+            command = input(
+                "1 - Статистика \n"
+                "2 - 3 лучших вакансий \n"
+                "3 - 3 последних вакансий \n"
+                "4 - Мне повезет \n"
+                "9 - Назад \n"
+                "0 - Выход \n"
+            )
 
-#
-# # Получение вакансий с разных платформ
-# hh_vacancies = hh_api.get_vacancies("Python")
-# superjob_vacancies = superjob_api.get_vacancies("Python")
-#
-# # Создание экземпляра класса для работы с вакансиями
-# vacancy = Vacancy("Python Developer", "<https://hh.ru/vacancy/123456>", "100 000-150 000 руб.", "Требования: опыт работы от 3 лет...")
-#
-# # Сохранение информации о вакансиях в файл
-# json_saver = JSONSaver()
-# json_saver.add_vacancy(vacancy)
-# json_saver.get_vacancies_by_salary("100 000-150 000 руб.")
-# json_saver.delete_vacancy(vacancy)
-#
-# # Функция для взаимодействия с пользователем
-# def user_interaction():
-#     platforms = ["HeadHunter", "SuperJob"]
-#     search_query = input("Введите поисковый запрос: ")
-#     top_n = int(input("Введите количество вакансий для вывода в топ N: "))
-#     filter_words = input("Введите ключевые слова для фильтрации вакансий: ").split()
-#     filtered_vacancies = filter_vacancies(hh_vacancies, superjob_vacancies, filter_words)
-#
-#     if not filtered_vacancies:
-#         print("Нет вакансий, соответствующих заданным критериям.")
-#         return
-#
-#     sorted_vacancies = sort_vacancies(filtered_vacancies)
-#     top_vacancies = get_top_vacancies(sorted_vacancies, top_n)
-#     print_vacancies(top_vacancies)
-#
-#
-# if name == "main":
-#     user_interaction()
+            if command == '0':
+                finish = True
+                break
+            elif command == '9':
+                break
+            elif command == '1':
+                vacancies = connector.statistics_keyword()
+            elif command == '2':
+                vacancies = connector.selectTop()
+            elif command == '3':
+                vacancies = connector.selectLast()
+            elif command == '4':
+                print('Попробуйте эти вакансии - вам точно повезет ')
+                vacancies = connector.select_random()
+
+            for vacancy in vacancies:
+                  print(vacancy)
+
+
+
+if __name__ == "__main__":
+    main()
